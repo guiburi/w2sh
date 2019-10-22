@@ -9,7 +9,7 @@ import (
 
 var (
 	name    string
-	rootCmd = &cobra.Command{
+	RootCmd = &cobra.Command{
 		Use:   "root",
 		Short: "My root command",
 		Long:  `My root command long desc`,
@@ -30,16 +30,12 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Usage")
-	rootCmd.AddCommand(subCmd)
-}
-
-func GetRoot() *cobra.Command {
-	return rootCmd
+	RootCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Usage")
+	RootCmd.AddCommand(subCmd)
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
