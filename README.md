@@ -4,7 +4,7 @@
 + [About](#about)
 + [Getting Started](#getting_started)
 + [Usage](#usage)
-+ [TODO](../TODO.md)
++ [TODO](../master/TODO.md)
 
 ## About <a name = "about"></a>
 
