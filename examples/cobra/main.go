@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"github.com/guiburi/w2sh"
+	"github.com/guiburi/w2sh/examples/cobra/cmd"
+	"log"
+	"net/http"
 )
 
 func main() {
-	fmt.Print(w2sh.Hello())
-	fmt.Print("word")
+	http.HandleFunc("/",w2sh.Handle(cmd.GetRoot()))
+	log.Fatal(http.ListenAndServe(":8080", nil))
+	//cmd.Execute()
 }
