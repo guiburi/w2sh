@@ -4,12 +4,13 @@
 + [About](#about)
 + [Getting Started](#getting_started)
 + [Usage](#usage)
-+ [Contributing](../CONTRIBUTING.md)
++ [TODO](../TODO.md)
 
 ## About <a name = "about"></a>
 
-Generate a web handler for any cli app.
+browse your cli app.
 
+## Getting Started <a name = "getting_started"></a>
 ### Installing
 
 ```
