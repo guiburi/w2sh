@@ -9,17 +9,17 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"text/template"
 )
 
 type Page struct {
+	Title  string
 	Output string
 	Form   string
 }
 
-var counter int
-
-var t = template.Must(template.ParseFiles("/Users/ali.firash/code/w2sh/template.html"))
+var (
+	counter int = 0
+)
 
 func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 
@@ -30,23 +30,26 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 		//execute with flags if method get run help
 		var output Page
 		if r.Method == "POST" {
+			r.ParseForm()
+			name := r.Form.Get("name")
 			fmt.Printf("%d::POSTED\n", counter)
-			output, _ = html(root, "--name", "seek")
+			output, _ = html(root, "--name", name)
 		} else {
 			fmt.Printf("%d::GETTED\n", counter)
 			output, _ = html(root, "--help")
 		}
-		t.Execute(w, output)
+		tmplte.Execute(w, output)
 	}
 }
 
 func html(cmd *cobra.Command, args ...string) (page Page, err error) {
-	form := genForm(cmd)
-	output, err := executeCommand(cmd, args...)
+	t := strings.Title(strings.ToLower(cmd.Name()))
+	f := genForm(cmd)
+	o, err := executeCommand(cmd, args...)
 	if err != nil {
 		return Page{Output: err.Error()}, err
 	}
-	return Page{Output: output, Form: form}, nil
+	return Page{Title: t, Output: o, Form: f}, nil
 }
 
 func genForm(cmd *cobra.Command) (form string) {
@@ -95,7 +98,6 @@ func capture() func() (string, error) {
 			return "", err
 		}
 	}
-
 	done := make(chan error, 1)
 	save := os.Stdout
 	os.Stdout = w

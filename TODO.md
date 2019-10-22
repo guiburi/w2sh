@@ -8,4 +8,5 @@
 - [ ] navigate subcommads
 - [ ] cli frameworks as providers
 - [ ] template update
+- [ ] submit files
 - [ ] intergrate urfave cli

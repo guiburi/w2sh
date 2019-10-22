@@ -14,7 +14,6 @@ var (
 		Short: "My root command",
 		Long:  `My root command long desc`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Inside rootCmd Run with args: %v\n", args)
 			fmt.Printf("Inside rootCmd Run with args: %v\n", name)
 		},
 	}
