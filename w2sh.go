@@ -18,32 +18,30 @@ type Page struct {
 }
 
 func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
+	// create map of commands and sub commands
 	return func(w http.ResponseWriter, r *http.Request) {
-		//find correct command
-		//extract flags from cmd
-		//execute with flags if method get run help
-		var output Page
-		if r.Method == "POST" {
-			r.ParseForm()
+		//lookup command
+		var output *Page
+		switch r.Method {
+		case http.MethodGet:
+			t := strings.Title(strings.ToLower(root.Name()))
+			f := genForm(root)
+			output = &Page{t, root.UsageString(), f}
+		case http.MethodPost:
+			//extract flags
+			_ = r.ParseForm()
 			name := r.Form.Get("name")
-			fmt.Printf("%d::POSTED\n")
-			output, _ = html(root, "--name", name)
-		} else {
-			fmt.Printf("%d::GETTED\n")
-			output, _ = html(root, "--help")
+			t := strings.Title(strings.ToLower(root.Name()))
+			f := genForm(root)
+			//execute
+			o, _ := executeCommand(root, "--name", name)
+			output = &Page{t, o, f}
+		default:
+			// Give an error message.
 		}
-		tmpl.Execute(w, output)
+		// template
+		_ = tmpl.Execute(w, output)
 	}
-}
-
-func html(cmd *cobra.Command, args ...string) (page Page, err error) {
-	t := strings.Title(strings.ToLower(cmd.Name()))
-	f := genForm(cmd)
-	o, err := executeCommand(cmd, args...)
-	if err != nil {
-		return Page{Output: err.Error()}, err
-	}
-	return Page{Title: t, Output: o, Form: f}, nil
 }
 
 func genForm(cmd *cobra.Command) (form string) {
@@ -59,7 +57,7 @@ func genForm(cmd *cobra.Command) (form string) {
 	if flags.HasAvailableFlags() {
 		genInput(buf, flags)
 	}
-	buf.WriteString(`<input type="submit" value="Submit">`)
+	buf.WriteString(`</br><input type="submit" value="Submit">`)
 	buf.WriteString(`</form>`)
 	return buf.String()
 }
@@ -99,14 +97,14 @@ func capture() func() (string, error) {
 
 	go func() {
 		_, err := io.Copy(&buf, r)
-		r.Close()
+		err = r.Close()
 		done <- err
 	}()
 
 	return func() (string, error) {
 		os.Stdout = save
-		w.Close()
-		err := <-done
+		err := w.Close()
+		err = <-done
 		return buf.String(), err
 	}
 }
