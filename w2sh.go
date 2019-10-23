@@ -17,14 +17,8 @@ type Page struct {
 	Form   string
 }
 
-var (
-	counter int = 0
-)
-
 func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		counter++
 		//find correct command
 		//extract flags from cmd
 		//execute with flags if method get run help
@@ -32,13 +26,13 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			r.ParseForm()
 			name := r.Form.Get("name")
-			fmt.Printf("%d::POSTED\n", counter)
+			fmt.Printf("%d::POSTED\n")
 			output, _ = html(root, "--name", name)
 		} else {
-			fmt.Printf("%d::GETTED\n", counter)
+			fmt.Printf("%d::GETTED\n")
 			output, _ = html(root, "--help")
 		}
-		tmplte.Execute(w, output)
+		tmpl.Execute(w, output)
 	}
 }
 

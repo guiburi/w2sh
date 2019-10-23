@@ -19,4 +19,4 @@ const tpl = `
 	</body>
 </html>`
 
-var tmplte, err = template.New("webpage").Parse(tpl)
+var tmpl, _ = template.New("webpage").Parse(tpl)
