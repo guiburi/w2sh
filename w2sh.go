@@ -18,9 +18,9 @@ type Page struct {
 }
 
 func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
-	// create map of commands and sub commands
+	// todo: create map of commands and sub commands
 	return func(w http.ResponseWriter, r *http.Request) {
-		//lookup command
+		//todo: lookup command
 		var output *Page
 		switch r.Method {
 		case http.MethodGet:
@@ -28,7 +28,7 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 			f := genForm(root)
 			output = &Page{t, root.UsageString(), f}
 		case http.MethodPost:
-			//extract flags
+			//todo: extract flags
 			_ = r.ParseForm()
 			name := r.Form.Get("name")
 			t := strings.Title(strings.ToLower(root.Name()))
@@ -37,9 +37,9 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 			o, _ := executeCommand(root, "--name", name)
 			output = &Page{t, o, f}
 		default:
-			// Give an error message.
+			// todo: give an error message.
 		}
-		// template
+		// render
 		_ = tmpl.Execute(w, output)
 	}
 }
