@@ -7,6 +7,7 @@
 - [x] submit form
 - [x] navigate subcommads
 - [ ] submit subcommads
+- [ ] recursive collect cmds
 - [ ] cli frameworks as providers
 - [ ] template update
 - [ ] submit files

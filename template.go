@@ -2,7 +2,7 @@ package w2sh
 
 import "text/template"
 
-const tpl = `
+var tmpl, _ = template.New("webpage").Parse(`
 <!DOCTYPE html>
 <html>
 	<head>
@@ -24,6 +24,5 @@ const tpl = `
 	<br>
 	<code style="white-space: pre-line">{{.Output}}</code>
 	</body>
-</html>`
-
-var tmpl, _ = template.New("webpage").Parse(tpl)
+</html>
+`)
