@@ -29,7 +29,8 @@ var (
 )
 
 func init() {
-	RootCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Usage")
+	RootCmd.Flags().StringVarP(&name, "name", "n", "", "Usage")
+	subCmd.Flags().StringVarP(&name, "sub-name", "s", "", "Usage")
 	RootCmd.AddCommand(subCmd)
 }
 
