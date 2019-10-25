@@ -12,12 +12,21 @@ import (
 )
 
 type Page struct {
-	Title  string
-	Output string
-	Form   string
+	Title      string
+	Output     string
+	Form       string
+	CommandMap map[string]*cobra.Command
 }
 
 func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
+
+	cmds := make(map[string]*cobra.Command)
+	for _, c := range root.Commands() {
+		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
+			continue
+		}
+		cmds[c.Name()] = c
+	}
 	// todo: create map of commands and sub commands
 	return func(w http.ResponseWriter, r *http.Request) {
 		//todo: lookup command
@@ -26,7 +35,8 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			t := strings.Title(strings.ToLower(root.Name()))
 			f := genForm(root)
-			output = &Page{t, root.UsageString(), f}
+			output = &Page{t, root.UsageString(), f, cmds}
+
 		case http.MethodPost:
 			//todo: extract flags
 			_ = r.ParseForm()
@@ -35,7 +45,7 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 			f := genForm(root)
 			//execute
 			o, _ := executeCommand(root, "--name", name)
-			output = &Page{t, o, f}
+			output = &Page{t, o, f, cmds}
 		default:
 			// todo: give an error message.
 		}

@@ -12,6 +12,13 @@ const tpl = `
 		<title>{{.Title}}</title>
 	</head>
 	<body>
+	<nav>
+		<ol>
+			{{ range $key, $value := .CommandMap }}
+				<ul><a href="/{{ $key }}">{{ $key }}</a></ul>
+			{{ end }}	
+		</ol>
+	</nav>
 	<h1>{{.Title}}</h1>
 	{{.Form}}
 	<br>
