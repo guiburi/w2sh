@@ -5,7 +5,8 @@
 - [x] Create TODO doc
 - [x] Fix page template reload issue
 - [x] submit form
-- [ ] navigate subcommads
+- [x] navigate subcommads
+- [ ] submit subcommads
 - [ ] cli frameworks as providers
 - [ ] template update
 - [ ] submit files

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
 
 type Page struct {
@@ -18,33 +19,44 @@ type Page struct {
 	CommandMap map[string]*cobra.Command
 }
 
-func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
+var mux sync.Mutex
 
+func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
+	//create cmd map
 	cmds := make(map[string]*cobra.Command)
+	cmds[root.Name()] = root
 	for _, c := range root.Commands() {
 		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
 			continue
 		}
 		cmds[c.Name()] = c
 	}
-	// todo: create map of commands and sub commands
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		//todo: lookup command
+		var cmd *cobra.Command
+		key := r.URL.Path[1:len(r.URL.Path)]
+		cmd, ok := cmds[key]
+		if !ok || r.URL.Path == "/" {
+			cmd = root
+		}
+
 		var output *Page
+		t := strings.Title(strings.ToLower(cmd.Name()))
+		//t := r.URL.Path[1 : len(r.URL.Path)]
+
 		switch r.Method {
 		case http.MethodGet:
-			t := strings.Title(strings.ToLower(root.Name()))
-			f := genForm(root)
-			output = &Page{t, root.UsageString(), f, cmds}
+			f := genForm(cmd)
+			output = &Page{t, cmd.UsageString(), f, cmds}
 
 		case http.MethodPost:
 			//todo: extract flags
 			_ = r.ParseForm()
 			name := r.Form.Get("name")
-			t := strings.Title(strings.ToLower(root.Name()))
-			f := genForm(root)
+			f := genForm(cmd)
 			//execute
-			o, _ := executeCommand(root, "--name", name)
+			o, _ := executeCommand(cmd, "--name", name)
 			output = &Page{t, o, f, cmds}
 		default:
 			// todo: give an error message.
@@ -83,6 +95,9 @@ func genInput(buf *bytes.Buffer, flags *pflag.FlagSet) {
 }
 
 func executeCommand(root *cobra.Command, args ...string) (output string, err error) {
+	mux.Lock()
+	defer mux.Unlock()
+
 	done := capture()
 	root.SetArgs(args)
 	_, err = root.ExecuteC()
