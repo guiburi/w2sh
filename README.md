@@ -39,8 +39,9 @@ http.HandleFunc("/", w2sh.Handle(cmd.RootCmd))
 - [x] Fix page template reload issue
 - [x] submit form
 - [x] navigate subcommads
-- [ ] submit subcommads
+- [x] submit subcommads
 - [ ] recursive collect cmds
+- [ ] pass args as args
 - [ ] cli frameworks as providers
 - [ ] template update
 - [ ] submit files

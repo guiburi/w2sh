@@ -29,10 +29,10 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
 			continue
 		}
+
 		cmds[c.Name()] = c
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		//todo: lookup command
 		var cmd *cobra.Command
 		key := r.URL.Path[1:len(r.URL.Path)]
@@ -43,20 +43,34 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 
 		var output *Page
 		t := strings.Title(strings.ToLower(cmd.Name()))
-		//t := r.URL.Path[1 : len(r.URL.Path)]
+		f := genForm(cmd)
+
+		args := []string{}
+		if r.URL.Path[1:len(r.URL.Path)] != root.Name() {
+			args = append(args, r.URL.Path[1:len(r.URL.Path)])
+		}
 
 		switch r.Method {
 		case http.MethodGet:
-			f := genForm(cmd)
+			// todo: help doesnt exit. why??
+			//args = append(args, "--help")
+			//o, _ := executeCommand(root, args...)
+			//output = &Page{t, o, f, cmds}
 			output = &Page{t, cmd.UsageString(), f, cmds}
 
 		case http.MethodPost:
-			//todo: extract flags
 			_ = r.ParseForm()
-			name := r.Form.Get("name")
-			f := genForm(cmd)
+			for k, v := range r.Form {
+				args = append(args, "--"+k)
+				args = append(args, strings.Join(v, ""))
+			}
+
+			// todo: remove this
+			fmt.Print(args)
+			fmt.Print("\n")
+
 			//execute
-			o, _ := executeCommand(cmd, "--name", name)
+			o, _ := executeCommand(root, args...)
 			output = &Page{t, o, f, cmds}
 		default:
 			// todo: give an error message.
@@ -68,7 +82,7 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 
 func genForm(cmd *cobra.Command) (form string) {
 	buf := new(bytes.Buffer)
-	buf.WriteString(`<form method="POST">`)
+	buf.WriteString(fmt.Sprintf(`<form method="POST" action="/%s">`, cmd.Name()))
 
 	flags := cmd.NonInheritedFlags()
 	if flags.HasAvailableFlags() {
@@ -94,13 +108,13 @@ func genInput(buf *bytes.Buffer, flags *pflag.FlagSet) {
 	})
 }
 
-func executeCommand(root *cobra.Command, args ...string) (output string, err error) {
+func executeCommand(cmd *cobra.Command, args ...string) (output string, err error) {
 	mux.Lock()
 	defer mux.Unlock()
 
 	done := capture()
-	root.SetArgs(args)
-	_, err = root.ExecuteC()
+	cmd.SetArgs(args)
+	_, err = cmd.ExecuteC()
 	if err != nil {
 		return "", err
 	}
@@ -117,7 +131,9 @@ func capture() func() (string, error) {
 	}
 	done := make(chan error, 1)
 	save := os.Stdout
+	saveErr := os.Stderr
 	os.Stdout = w
+	os.Stderr = w
 	var buf strings.Builder
 
 	go func() {
@@ -128,6 +144,7 @@ func capture() func() (string, error) {
 
 	return func() (string, error) {
 		os.Stdout = save
+		os.Stderr = saveErr
 		err := w.Close()
 		err = <-done
 		return buf.String(), err

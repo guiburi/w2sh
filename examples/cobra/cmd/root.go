@@ -9,12 +9,13 @@ import (
 
 var (
 	name    string
+	subName string
 	RootCmd = &cobra.Command{
 		Use:   "root",
 		Short: "My root command",
 		Long:  `My root command long desc`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Inside rootCmd Run with args: %v\n", name)
+			fmt.Printf("\nInside rootCmd Run with name: %v\n", name)
 		},
 	}
 
@@ -23,14 +24,14 @@ var (
 		Short: "My subcommand",
 		Long:  `My subcommand long desc`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Inside subCmd Run with args: %v\n", args)
+			fmt.Printf("\nInside subCmd Run with subname: %v\n", subName)
 		},
 	}
 )
 
 func init() {
 	RootCmd.Flags().StringVarP(&name, "name", "n", "", "Usage")
-	subCmd.Flags().StringVarP(&name, "sub-name", "s", "", "Usage")
+	subCmd.Flags().StringVarP(&subName, "sub", "s", "", "Usage")
 	RootCmd.AddCommand(subCmd)
 }
 
