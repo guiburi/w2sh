@@ -4,7 +4,7 @@
 + [About](#about)
 + [Getting Started](#getting_started)
 + [Usage](#usage)
-+ [TODO](../master/TODO.md)
++ [TODO](#todo)
 
 ## About <a name = "about"></a>
 
@@ -30,3 +30,18 @@ See the examples folder for a working samples.
 ```
 http.HandleFunc("/", w2sh.Handle(cmd.RootCmd))
 ```
+
+## TODO <a name = "todo"></a>
+
+---
+
+- [x] Create TODO doc
+- [x] Fix page template reload issue
+- [x] submit form
+- [x] navigate subcommads
+- [ ] submit subcommads
+- [ ] recursive collect cmds
+- [ ] cli frameworks as providers
+- [ ] template update
+- [ ] submit files
+- [ ] intergrate urfave cli
