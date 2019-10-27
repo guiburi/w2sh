@@ -3,41 +3,42 @@ package w2sh
 import (
 	"bytes"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
+type CommandMap struct {
+	Cmds     map[string]*cobra.Command
+	Children []*CommandMap
+}
+
 type Page struct {
-	Title      string
-	Output     string
-	Form       string
-	CommandMap map[string]*cobra.Command
+	Title  string
+	Output string
+	Form   string
+	CmdMap CommandMap
 }
 
 var mux sync.Mutex
 
 func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 	//create cmd map
-	cmds := make(map[string]*cobra.Command)
-	cmds[root.Name()] = root
-	for _, c := range root.Commands() {
-		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
-			continue
-		}
+	var cmdMap = &CommandMap{}
+	cmdMap.Cmds = make(map[string]*cobra.Command)
+	cmdMap = extract(root, cmdMap)
 
-		cmds[c.Name()] = c
-	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		//todo: lookup command
-		var cmd *cobra.Command
-		key := r.URL.Path[1:len(r.URL.Path)]
-		cmd, ok := cmds[key]
-		if !ok || r.URL.Path == "/" {
+		args := []string{}
+
+		args, cmd := lookup(r.URL.Path[1:len(r.URL.Path)], cmdMap, args)
+		if cmd == nil || r.URL.Path == "/" {
+			fmt.Print("was not found \n")
 			cmd = root
 		}
 
@@ -45,10 +46,9 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 		t := strings.Title(strings.ToLower(cmd.Name()))
 		f := genForm(cmd)
 
-		args := []string{}
-		if r.URL.Path[1:len(r.URL.Path)] != root.Name() {
-			args = append(args, r.URL.Path[1:len(r.URL.Path)])
-		}
+		//if r.URL.Path[1:len(r.URL.Path)] != root.Name() {
+		//	args = append(args, r.URL.Path[1:len(r.URL.Path)])
+		//}
 
 		switch r.Method {
 		case http.MethodGet:
@@ -56,7 +56,7 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 			//args = append(args, "--help")
 			//o, _ := executeCommand(root, args...)
 			//output = &Page{t, o, f, cmds}
-			output = &Page{t, cmd.UsageString(), f, cmds}
+			output = &Page{t, cmd.UsageString(), f, *cmdMap}
 
 		case http.MethodPost:
 			_ = r.ParseForm()
@@ -70,14 +70,53 @@ func Handle(root *cobra.Command) func(w http.ResponseWriter, r *http.Request) {
 			fmt.Print("\n")
 
 			//execute
-			o, _ := executeCommand(root, args...)
-			output = &Page{t, o, f, cmds}
+			o, _ := execute(root, args...)
+			output = &Page{t, o, f, *cmdMap}
 		default:
 			// todo: give an error message.
 		}
 		// render
 		_ = tmpl.Execute(w, output)
 	}
+}
+
+func extract(cmd *cobra.Command, cmdMap *CommandMap) *CommandMap {
+	fmt.Print("extracting::" + cmd.Name() + "\n")
+	cmdMap.Cmds[cmd.Name()] = cmd
+
+	for _, c := range cmd.Commands() {
+		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
+			continue
+		}
+		var childMap = &CommandMap{}
+		childMap.Cmds = make(map[string]*cobra.Command)
+		childMap.Cmds[c.Name()] = c
+		cmdMap.Children = append(cmdMap.Children, childMap)
+		extract(c, childMap)
+	}
+	return cmdMap
+}
+
+func lookup(name string, cmdMap *CommandMap, args []string) ([]string, *cobra.Command) {
+
+	if cmd, ok := cmdMap.Cmds[name]; ok {
+		if cmd.HasParent() {
+			args = append(args, cmd.Name())
+		}
+		fmt.Print("root::" + cmd.Name() + "\n")
+		return args, cmd
+	}
+
+	for _, child := range cmdMap.Children {
+		if cmd, ok := child.Cmds[name]; ok {
+			args = append(args, cmd.Name())
+			fmt.Printf("args::%v\n", args)
+			return args, cmd
+		}
+
+		lookup(name, child, args)
+	}
+	return nil, nil
 }
 
 func genForm(cmd *cobra.Command) (form string) {
@@ -108,7 +147,7 @@ func genInput(buf *bytes.Buffer, flags *pflag.FlagSet) {
 	})
 }
 
-func executeCommand(cmd *cobra.Command, args ...string) (output string, err error) {
+func execute(cmd *cobra.Command, args ...string) (output string, err error) {
 	mux.Lock()
 	defer mux.Unlock()
 

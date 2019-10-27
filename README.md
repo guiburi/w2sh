@@ -40,7 +40,8 @@ http.HandleFunc("/", w2sh.Handle(cmd.RootCmd))
 - [x] submit form
 - [x] navigate subcommads
 - [x] submit subcommads
-- [ ] recursive collect cmds
+- [x] recursive collect cmds
+- [ ] execute recursive
 - [ ] pass args as args
 - [ ] cli frameworks as providers
 - [ ] template update

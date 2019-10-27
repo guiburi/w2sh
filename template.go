@@ -3,6 +3,18 @@ package w2sh
 import "text/template"
 
 var tmpl, _ = template.New("webpage").Parse(`
+{{ define "message" }}
+	{{ range $key, $value := .Cmds }}
+		<li><a href="/{{ $key }}">{{ $key }}</a></li>
+	{{ end }}
+	{{ if gt (len .Children) 0}}
+		<ol>
+			{{ range .Children }}
+				{{ template "message" . }}
+			{{ end }}
+		</ol>
+	{{ end }}
+{{ end }}
 <!DOCTYPE html>
 <html>
 	<head>
@@ -13,11 +25,7 @@ var tmpl, _ = template.New("webpage").Parse(`
 	</head>
 	<body>
 	<nav>
-		<ol>
-			{{ range $key, $value := .CommandMap }}
-				<ul><a href="/{{ $key }}">{{ $key }}</a></ul>
-			{{ end }}	
-		</ol>
+		<ol>{{ template "message" .CmdMap }}</ol>
 	</nav>
 	<h1>{{.Title}}</h1>
 	{{.Form}}

@@ -19,20 +19,40 @@ var (
 		},
 	}
 
-	subCmd = &cobra.Command{
-		Use:   "sub",
-		Short: "My subcommand",
-		Long:  `My subcommand long desc`,
+	child = &cobra.Command{
+		Use:   "child",
+		Short: "My childcommand",
+		Long:  `My childcommand long desc`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("\nInside subCmd Run with subname: %v\n", subName)
+			fmt.Printf("\nInside child Run with subname: %v\n", subName)
+		},
+	}
+
+	sibling = &cobra.Command{
+		Use:   "sibling",
+		Short: "My sibling",
+		Long:  `My sibling long desc`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("\nInside sibling Run with subname: %v\n", subName)
+		},
+	}
+
+	grandchild = &cobra.Command{
+		Use:   "grand",
+		Short: "My grandchild",
+		Long:  `My grandchild long desc`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("\nInside grandchild Run with subname: %v\n", subName)
 		},
 	}
 )
 
 func init() {
 	RootCmd.Flags().StringVarP(&name, "name", "n", "", "Usage")
-	subCmd.Flags().StringVarP(&subName, "sub", "s", "", "Usage")
-	RootCmd.AddCommand(subCmd)
+	child.Flags().StringVarP(&subName, "sub", "s", "", "Usage")
+	RootCmd.AddCommand(child)
+	RootCmd.AddCommand(sibling)
+	child.AddCommand(grandchild)
 }
 
 func Execute() {

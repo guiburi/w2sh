@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/guiburi/w2sh"
-	"github.com/guiburi/w2sh/examples/cobra/cmd"
 	"log"
 	"net/http"
+
+	"github.com/guiburi/w2sh"
+	"github.com/guiburi/w2sh/examples/cobra/cmd"
 )
 
 func main() {
